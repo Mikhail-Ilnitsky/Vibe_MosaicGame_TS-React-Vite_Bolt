@@ -2,6 +2,12 @@ import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
 import type { GridConfig, ImageData, Language } from '@/types';
 import { t } from '@/i18n';
 
+const FALLBACK_ASPECT: Record<ImageData['orientation'], number> = {
+  landscape: 1200 / 800,
+  portrait: 800 / 1200,
+  square: 1,
+};
+
 interface DifficultySelectorProps {
   image: ImageData;
   language: Language;
@@ -12,6 +18,10 @@ interface DifficultySelectorProps {
 
 export function DifficultySelector({ image, language, grids, onBack, onSelect }: DifficultySelectorProps) {
   const copy = t(language).difficulty;
+  const aspect =
+    grids.length > 0 && grids[0].naturalH > 0
+      ? grids[0].naturalW / grids[0].naturalH
+      : FALLBACK_ASPECT[image.orientation];
 
   return (
     <main className="mx-auto w-full max-w-5xl px-5 pb-16 pt-8 sm:px-8 sm:pt-12 lg:px-12">
@@ -22,8 +32,11 @@ export function DifficultySelector({ image, language, grids, onBack, onSelect }:
 
       <div className="grid gap-10 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:items-start lg:gap-16">
         <div>
-          <div className="mb-5 overflow-hidden rounded-2xl bg-stone-100 shadow-sm">
-            <img src={image.url} alt={image.title[language]} className="aspect-[4/3] h-full w-full object-cover" />
+          <div
+            className="mb-5 w-full max-w-full overflow-hidden rounded-2xl bg-stone-100 shadow-sm"
+            style={{ aspectRatio: String(aspect) }}
+          >
+            <img src={image.url} alt={image.title[language]} className="h-full w-full object-contain" />
           </div>
           <h1 className="text-3xl font-medium tracking-[-0.04em] text-stone-900 sm:text-4xl">{image.title[language]}</h1>
           <p className="mt-3 text-sm leading-6 text-stone-500">{copy.subtitle}</p>
