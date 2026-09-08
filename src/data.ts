@@ -21,9 +21,9 @@ export const IMAGES: ImageData[] = [
   },
   {
     id: 'landscape-2',
-    url: 'https://i.pinimg.com/originals/1a/57/b2/1a57b2c4f6fdadcc03b214857dde8fbb.jpg',
+    url: 'https://images.thevoicemag.ru/upload/img_cache/4cf/4cfd402884951db60028fff41dfeed21_ce_1800x945x302x0_cropped_1200x628.jpg',
     orientation: 'landscape',
-    title: { ru: 'Зеленые холмы', en: 'Green Hills' },
+    title: { ru: 'Супермодели', en: 'Supermodels' },
   },
   {
     id: 'portrait-2',
