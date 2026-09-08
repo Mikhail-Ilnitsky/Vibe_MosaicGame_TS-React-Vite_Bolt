@@ -33,8 +33,8 @@ export const IMAGES: ImageData[] = [
   },
   {
     id: 'square-2',
-    url: 'https://wallpaper.forfun.com/fetch/54/547010d98133e67f712537b11aae7743.jpeg',
+    url: 'https://i.pinimg.com/originals/a8/75/a4/a875a45c993d0bdcce3755c91499e6ff.jpg',
     orientation: 'square',
-    title: { ru: 'Осенний лес', en: 'Autumn Forest' },
+    title: { ru: 'Монако', en: 'Monaco' },
   },
 ];
