@@ -4,6 +4,7 @@ import { fileURLToPath, URL } from 'node:url';
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: '/Vibe_MosaicGame_TS-React-Vite_Bolt/',
   plugins: [react()],
   resolve: {
     alias: {
