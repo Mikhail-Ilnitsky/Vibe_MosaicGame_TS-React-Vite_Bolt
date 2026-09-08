@@ -123,10 +123,10 @@ export function PuzzleBoard({ image, language, grid, onBack, onWon }: PuzzleBoar
           <p className="mt-2 text-sm text-stone-400">{grid.rows}×{grid.cols}</p>
         </div>
 
-        <div className="relative mx-auto w-fit max-w-full">
+        <div className="relative mx-auto w-full max-w-full">
           <div
             ref={boardRef}
-            className="grid max-w-full touch-none overflow-hidden rounded-lg border border-stone-200 bg-stone-100 shadow-[0_12px_40px_rgba(28,25,23,0.12)]"
+            className="grid w-full max-w-full touch-none overflow-hidden rounded-lg border border-stone-200 bg-stone-100 shadow-[0_12px_40px_rgba(28,25,23,0.12)]"
             style={{ gridTemplateColumns: `repeat(${grid.cols}, minmax(0, 1fr))`, aspectRatio: `${grid.cols} / ${grid.rows}` }}
             onPointerMove={handlePointerMove}
           >
