@@ -35,8 +35,11 @@ function GalleryItem({ image, index, language, onSelect }: GalleryItemProps) {
     <button
       type="button"
       onClick={() => onSelect(image)}
-      className="group relative h-64 shrink-0 overflow-hidden rounded-2xl bg-stone-100 text-left shadow-[0_2px_20px_rgba(28,25,23,0.04)] transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(28,25,23,0.14)] focus:outline-none focus:ring-2 focus:ring-stone-900 focus:ring-offset-4 sm:h-72"
-      style={{ aspectRatio: String(aspect) }}
+      className="group relative max-w-full min-w-0 overflow-hidden rounded-2xl bg-stone-100 text-left shadow-[0_2px_20px_rgba(28,25,23,0.04)] transition-all duration-500 [--thumb-h:16rem] hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(28,25,23,0.14)] focus:outline-none focus:ring-2 focus:ring-stone-900 focus:ring-offset-4 sm:[--thumb-h:18rem]"
+      style={{
+        aspectRatio: String(aspect),
+        width: `min(100%, calc(var(--thumb-h) * ${aspect}))`,
+      }}
       aria-label={image.title[language]}
     >
       <img

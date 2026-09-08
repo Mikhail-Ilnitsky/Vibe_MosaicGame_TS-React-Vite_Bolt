@@ -194,14 +194,14 @@ export function PuzzleBoard({ image, language, grid, onBack, onWon }: PuzzleBoar
               <img
                 src={image.url}
                 alt={image.title[language]}
-                className="absolute inset-0 h-full w-full object-contain animate-fade-in"
+                className="absolute inset-0 h-full w-full object-cover animate-fade-in"
               />
             )}
           </div>
 
           {showPreview && interactive && (
-            <div className="absolute inset-0 z-20 overflow-hidden rounded-lg bg-white/95 p-3 backdrop-blur-sm animate-fade-in">
-              <img src={image.url} alt={copy.preview} className="h-full w-full rounded object-contain" />
+            <div className="absolute inset-0 z-20 overflow-hidden rounded-lg animate-fade-in">
+              <img src={image.url} alt={copy.preview} className="absolute inset-0 h-full w-full object-cover" />
             </div>
           )}
         </div>
