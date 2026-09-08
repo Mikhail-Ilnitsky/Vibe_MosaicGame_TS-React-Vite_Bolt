@@ -2,6 +2,8 @@
 
 Адаптивная браузерная игра-пазл: выберите картинку, сложность и соберите мозаику из квадратных фрагментов. Чистый фронтенд (SPA), без бэкенда.
 
+**Демо:** [mikhail-ilnitsky.github.io/Vibe_MosaicGame_TS-React-Vite_Bolt](https://mikhail-ilnitsky.github.io/Vibe_MosaicGame_TS-React-Vite_Bolt/)
+
 ## Возможности
 
 - Галерея изображений с локализованными названиями (RU / EN)
