@@ -4,6 +4,8 @@ import type { GridConfig, ImageData, Language } from '@/types';
 import { indexToXY, isSolved, shufflePieces } from '@/puzzleUtils';
 import { t } from '@/i18n';
 
+type WinPhase = 'playing' | 'flash' | 'reveal' | 'done';
+
 interface PuzzleBoardProps {
   image: ImageData;
   language: Language;
@@ -21,14 +23,28 @@ export function PuzzleBoard({ image, language, grid, onBack, onWon }: PuzzleBoar
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const [moves, setMoves] = useState(0);
   const [showPreview, setShowPreview] = useState(false);
+  const [winPhase, setWinPhase] = useState<WinPhase>('playing');
   const didMove = useRef(false);
   const dragOrigin = useRef<number | null>(null);
   const boardRef = useRef<HTMLDivElement>(null);
   const hasWon = isSolved(pieces);
+  const interactive = winPhase === 'playing';
+  const showingSolvedImage = winPhase === 'reveal' || winPhase === 'done';
 
   useEffect(() => {
     if (hasWon) onWon();
   }, [hasWon, onWon]);
+
+  useEffect(() => {
+    if (!hasWon) return;
+    setWinPhase('flash');
+    const revealTimer = window.setTimeout(() => setWinPhase('reveal'), 250);
+    const doneTimer = window.setTimeout(() => setWinPhase('done'), 650);
+    return () => {
+      window.clearTimeout(revealTimer);
+      window.clearTimeout(doneTimer);
+    };
+  }, [hasWon]);
 
   const swapPieces = (from: number, to: number) => {
     if (from === to) return;
@@ -49,6 +65,7 @@ export function PuzzleBoard({ image, language, grid, onBack, onWon }: PuzzleBoar
   };
 
   const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>, index: number) => {
+    if (!interactive) return;
     event.currentTarget.setPointerCapture(event.pointerId);
     dragOrigin.current = index;
     didMove.current = false;
@@ -57,7 +74,7 @@ export function PuzzleBoard({ image, language, grid, onBack, onWon }: PuzzleBoar
   };
 
   const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (dragOrigin.current === null) return;
+    if (!interactive || dragOrigin.current === null) return;
     const nextIndex = getCellIndex(event.clientX, event.clientY);
     if (nextIndex !== null) {
       setHoverIndex(nextIndex);
@@ -66,6 +83,7 @@ export function PuzzleBoard({ image, language, grid, onBack, onWon }: PuzzleBoar
   };
 
   const handlePointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!interactive) return;
     const origin = dragOrigin.current;
     const target = getCellIndex(event.clientX, event.clientY) ?? hoverIndex;
     if (origin !== null && target !== null && target !== origin && didMove.current) {
@@ -77,6 +95,7 @@ export function PuzzleBoard({ image, language, grid, onBack, onWon }: PuzzleBoar
   };
 
   const handleClick = (index: number) => {
+    if (!interactive) return;
     if (didMove.current) {
       didMove.current = false;
       return;
@@ -94,6 +113,7 @@ export function PuzzleBoard({ image, language, grid, onBack, onWon }: PuzzleBoar
   };
 
   const handleShuffle = () => {
+    if (!interactive) return;
     setPieces((current) => shufflePieces(current));
     setSelectedIndex(null);
     setMoves((current) => current + 1);
@@ -111,7 +131,7 @@ export function PuzzleBoard({ image, language, grid, onBack, onWon }: PuzzleBoar
         <div className="flex items-center gap-3">
           <div className="hidden text-xs text-stone-400 sm:block">{copy.moves}</div>
           <div className="min-w-9 rounded-full bg-stone-100 px-3 py-1.5 text-center text-xs font-semibold text-stone-700">{moves}</div>
-          <button type="button" onClick={handleShuffle} className="flex h-9 w-9 items-center justify-center rounded-full border border-stone-200 text-stone-500 transition-colors hover:border-stone-900 hover:text-stone-900" aria-label={copy.shuffle}>
+          <button type="button" onClick={handleShuffle} disabled={!interactive} className="flex h-9 w-9 items-center justify-center rounded-full border border-stone-200 text-stone-500 transition-colors hover:border-stone-900 hover:text-stone-900 disabled:pointer-events-none disabled:opacity-40" aria-label={copy.shuffle}>
             <RotateCcw size={15} />
           </button>
         </div>
@@ -125,58 +145,75 @@ export function PuzzleBoard({ image, language, grid, onBack, onWon }: PuzzleBoar
 
         <div className="relative mx-auto w-full max-w-full">
           <div
-            ref={boardRef}
-            className="grid w-full max-w-full touch-none overflow-hidden rounded-lg border border-stone-200 bg-stone-100 shadow-[0_12px_40px_rgba(28,25,23,0.12)]"
-            style={{ gridTemplateColumns: `repeat(${grid.cols}, minmax(0, 1fr))`, aspectRatio: `${grid.cols} / ${grid.rows}` }}
-            onPointerMove={handlePointerMove}
+            className="relative w-full overflow-hidden rounded-lg border border-stone-200 bg-stone-100 shadow-[0_12px_40px_rgba(28,25,23,0.12)]"
+            style={{ aspectRatio: `${grid.cols} / ${grid.rows}` }}
           >
-            {pieces.map((pieceId, index) => {
-              const { x, y } = indexToXY(pieceId, grid.cols);
-              const positionX = grid.cols > 1 ? (x / (grid.cols - 1)) * 100 : 0;
-              const positionY = grid.rows > 1 ? (y / (grid.rows - 1)) * 100 : 0;
-              const isSelected = selectedIndex === index;
-              const isDragged = dragIndex === index;
-              const isHoverTarget = hoverIndex === index && dragIndex !== index;
+            {!showingSolvedImage && (
+              <div
+                ref={boardRef}
+                className="grid h-full w-full max-w-full touch-none"
+                style={{ gridTemplateColumns: `repeat(${grid.cols}, minmax(0, 1fr))` }}
+                onPointerMove={handlePointerMove}
+              >
+                {pieces.map((pieceId, index) => {
+                  const { x, y } = indexToXY(pieceId, grid.cols);
+                  const positionX = grid.cols > 1 ? (x / (grid.cols - 1)) * 100 : 0;
+                  const positionY = grid.rows > 1 ? (y / (grid.rows - 1)) * 100 : 0;
+                  const isSelected = selectedIndex === index;
+                  const isDragged = dragIndex === index;
+                  const isHoverTarget = hoverIndex === index && dragIndex !== index;
 
-              return (
-                <div
-                  key={`${pieceId}-${index}`}
-                  data-puzzle-cell={index}
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`Puzzle piece ${pieceId + 1}`}
-                  className={`relative min-w-0 cursor-grab select-none border-[0.5px] border-white/60 bg-stone-200 bg-no-repeat transition-[filter,transform,outline] duration-200 active:cursor-grabbing ${isSelected ? 'piece-select' : ''} ${isDragged ? 'z-10 scale-[0.96] brightness-110' : ''} ${isHoverTarget ? 'outline outline-2 outline-stone-900/50 outline-offset-[-2px]' : ''}`}
-                  style={{
-                    aspectRatio: '1',
-                    backgroundImage: `url(${image.url})`,
-                    backgroundSize,
-                    backgroundPosition: `${positionX}% ${positionY}%`,
-                  }}
-                  onPointerDown={(event) => handlePointerDown(event, index)}
-                  onPointerUp={handlePointerUp}
-                  onPointerCancel={handlePointerUp}
-                  onClick={() => handleClick(index)}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter' || event.key === ' ') handleClick(index);
-                  }}
-                />
-              );
-            })}
+                  return (
+                    <div
+                      key={`${pieceId}-${index}`}
+                      data-puzzle-cell={index}
+                      role="button"
+                      tabIndex={interactive ? 0 : -1}
+                      aria-label={`Puzzle piece ${pieceId + 1}`}
+                      className={`relative min-w-0 cursor-grab select-none border-[0.5px] border-white/60 bg-stone-200 bg-no-repeat transition-[transform,outline] duration-200 active:cursor-grabbing ${isSelected ? 'piece-select' : ''} ${isDragged ? 'z-10 scale-[0.96] brightness-110' : ''} ${isHoverTarget ? 'outline outline-2 outline-stone-900/50 outline-offset-[-2px]' : ''} ${winPhase === 'flash' ? 'animate-win-flash' : ''}`}
+                      style={{
+                        aspectRatio: '1',
+                        backgroundImage: `url(${image.url})`,
+                        backgroundSize,
+                        backgroundPosition: `${positionX}% ${positionY}%`,
+                      }}
+                      onPointerDown={(event) => handlePointerDown(event, index)}
+                      onPointerUp={handlePointerUp}
+                      onPointerCancel={handlePointerUp}
+                      onClick={() => handleClick(index)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') handleClick(index);
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            )}
+
+            {showingSolvedImage && (
+              <img
+                src={image.url}
+                alt={image.title[language]}
+                className="absolute inset-0 h-full w-full object-contain animate-fade-in"
+              />
+            )}
           </div>
 
-          {showPreview && (
+          {showPreview && interactive && (
             <div className="absolute inset-0 z-20 overflow-hidden rounded-lg bg-white/95 p-3 backdrop-blur-sm animate-fade-in">
               <img src={image.url} alt={copy.preview} className="h-full w-full rounded object-contain" />
             </div>
           )}
         </div>
 
-        <button type="button" onClick={() => setShowPreview((current) => !current)} className="mt-5 inline-flex items-center gap-2 text-xs font-medium text-stone-400 transition-colors hover:text-stone-900">
-          {showPreview ? <EyeOff size={15} /> : <Eye size={15} />}
-          {showPreview ? copy.hidePreview : copy.showPreview}
-        </button>
+        {interactive && (
+          <button type="button" onClick={() => setShowPreview((current) => !current)} className="mt-5 inline-flex items-center gap-2 text-xs font-medium text-stone-400 transition-colors hover:text-stone-900">
+            {showPreview ? <EyeOff size={15} /> : <Eye size={15} />}
+            {showPreview ? copy.hidePreview : copy.showPreview}
+          </button>
+        )}
 
-        {hasWon && (
+        {winPhase === 'done' && (
           <div className="mt-10 animate-fade-in-up rounded-2xl border border-stone-200 bg-stone-50 px-6 py-7 sm:mt-14 sm:px-10">
             <p className="text-2xl font-medium tracking-[-0.04em] text-stone-900 sm:text-3xl">{copy.won}</p>
             <p className="mt-2 text-sm text-stone-500">{copy.wonSubtitle.replace('{moves}', String(moves))}</p>
